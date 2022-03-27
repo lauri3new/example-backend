@@ -1,13 +1,10 @@
 import { Router } from 'express'
-import { AnimalHttpController } from './animals/api/http'
+import { Controllers } from './controller'
 
-type Controllers = {
-  httpAnimalController: AnimalHttpController
-}
+/**
+ * binds controllers to express routes as side effect
+*/
 
-export const bindRoutes = (router: Router, controllers: Controllers): Router => {
-  const { httpAnimalController } = controllers
-  router.get('/animals/:id', httpAnimalController.httpGet)
-  router.put('/animals/:id', httpAnimalController.httpPut)
-  return router
+export const bindRoutes = (router: Router, controllers: Controllers) => {
+  router.get('/v1/products', controllers.productHttpController.get)
 }

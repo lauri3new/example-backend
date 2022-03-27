@@ -1,45 +1,51 @@
-import express, { json, Router } from 'express'
-import { createAnimalHttpController } from './animals/api/http'
-import { createAnimalApplicationService } from './animals/applicationServices'
-import { dbClient } from './animals/capabilities/dbClient'
-import { createAnimalRepository } from './animals/respositories/animal'
+import express, { ErrorRequestHandler, Router } from 'express'
+import morgan from 'morgan'
+import cors from 'cors'
+import { logger } from './capabilities/logger'
 import { bindRoutes } from './bindRoutes'
+import { capabilities } from './capabilities'
+import { createRepositories } from './repositories'
+import { createAppServices } from './appServices'
+import { createControllers } from './controller'
+
+const repositories = createRepositories(capabilities)
+// capabilities services
+// event services
+const appServices = createAppServices({ repositories })
+// coordinator app services
+const controllers = createControllers(appServices)
 
 const app = express()
 
-const capabilities = {
-  dbClient
-}
+app.use(morgan('dev'))
 
-const repositories = {
-  animalRepo: createAnimalRepository({ capabilities })
-}
-
-const applicationServices = {
-  animalApplicationService: createAnimalApplicationService({ repositories })
-}
-
-const controllers = {
-  httpAnimalController: createAnimalHttpController({ applicationServices })
-}
-
-const routes = bindRoutes(Router(), controllers)
-
-app.use(json())
-
-app.use(routes)
-
-app.use('*', (req, res) => {
-  res.status(404).send({
-    message: 'not found'
-  })
+app.use((req, res, next) => {
+  if (['checkout-webhook', 'slack/events'].some(a => req.originalUrl.includes(a))) {
+    next()
+  } else {
+    express.json()(req, res, next)
+  }
 })
 
-app.use('*', (req: any, res: any, next: any, error: any) => {
-  console.log(error)
-  res.status(500).send({
-    message: 'doh'
-  })
-})
+app.use(cors())
 
-app.listen(3000, () => console.log('app is listening on port 3000'))
+app.options('*', cors() as any)
+
+const appRouter = Router()
+
+bindRoutes(appRouter, controllers)
+
+app.use('*', appRouter)
+
+app.get('*', (req, res) => res.send({
+  error: 'not found'
+}))
+
+const errorHandler: ErrorRequestHandler = (err, req, res, _) => {
+  logger.error({ err })
+  res.status(500).send('Something broke!')
+}
+
+app.use(errorHandler)
+
+app.listen(8080)
