@@ -1,13 +1,5 @@
 import { DbClient } from '../capabilities/dbClient'
-
-export type AnimalType = 'dog' | 'cat' | 'elephant' | 'sloth'
-
-type Animal = {
-  id: string
-  name: string
-  type: AnimalType
-  updatedAt: Date
-}
+import { Animal } from '../domain/animal'
 
 type AnimalRepositoryDependencies = {
   capabilities: {
@@ -15,12 +7,12 @@ type AnimalRepositoryDependencies = {
   }
 }
 
-type PutAnimalProps = Pick<Animal, 'name' | 'type'> & { id: string }
+type PutAnimalProps = Pick<Animal['props'], 'name' | 'type'> & { id: string }
 
 export const createAnimalRepository = ({ capabilities: { dbClient } }: AnimalRepositoryDependencies) => ({
-  get: (id: string) => dbClient.get<Animal>(id),
+  get: (id: string) => dbClient.get(id),
   put: (props: PutAnimalProps) => dbClient
-    .put<Animal>(props.id, { ...props, updatedAt: new Date() })
+    .put(props.id, { ...props, updatedAt: new Date() })
 })
 
 export type AnimalRepository = ReturnType<typeof createAnimalRepository>

@@ -1,5 +1,5 @@
 import express, { json, Router } from 'express'
-import { createAnimalHttpController } from './animals/api/http'
+import { createAnimalHttpController } from './animals/controllers/http'
 import { createAnimalApplicationService } from './animals/applicationServices'
 import { dbClient } from './animals/capabilities/dbClient'
 import { createAnimalRepository } from './animals/respositories/animal'

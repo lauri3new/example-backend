@@ -1,7 +1,7 @@
 import { Right } from 'light-fp/dist/Either'
-import { fromNullable } from '../../lib'
+import { fromNullable } from '../../shared/fromNullable'
 import { checkAnimalType } from '../helpers'
-import { AnimalRepository, AnimalType } from '../respositories/animal'
+import { AnimalRepository } from '../respositories/animal'
 
 export type AnimalApplicationServiceProps = {
   repositories: {
@@ -24,3 +24,9 @@ export const createAnimalApplicationService = ({ repositories: { animalRepo } }:
 })
 
 export type AnimalApplicationService = ReturnType<typeof createAnimalApplicationService>
+
+export type ApplicationServices = {
+  applicationServices: {
+    animalApplicationService: AnimalApplicationService
+  }
+}

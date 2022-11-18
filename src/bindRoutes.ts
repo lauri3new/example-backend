@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { AnimalHttpController } from './animals/api/http'
+import { AnimalHttpController } from './animals/controllers/http'
 
 type Controllers = {
   httpAnimalController: AnimalHttpController
