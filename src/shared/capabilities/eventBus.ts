@@ -4,18 +4,18 @@ export interface EventBus {
 }
 
 export class MemoryEventBus implements EventBus {
-  constructor(private listeners: any) {
-    this.listeners = {}
+  constructor(private listeners: any = {}) {
+    this.listeners = listeners
   }
 
   on(eventName: string, listener: (eventData: any) => Promise<void>) {
     return new MemoryEventBus({
       ...this.listeners,
-      [eventName]: [...this.listeners[eventName], listener]
+      [eventName]: this.listeners[eventName] ? [...this.listeners[eventName], listener] : [listener]
     })
   }
 
   emit(eventName: string, eventData: any) {
-    return Promise.all(this.listeners[eventName].map((listener: any) => listener(eventData)))
+    return Promise.all((this.listeners[eventName] || []).map((listener: any) => listener(eventData)))
   }
 }
