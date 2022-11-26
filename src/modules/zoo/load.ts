@@ -9,24 +9,24 @@ import { HasRespositories } from './repositories/index'
 export const loadZooModule = (
   deps: {
     app: Express,
-    eventBus: EventBus,
     capabilities: {
       dbClient: Knex
+      eventBus: EventBus
     },
     overrideRepositories?: Partial<HasRespositories>,
     overrideApplicationServices?: Partial<ApplicationServices>
   }
 ) => {
   const { capabilities } = deps
-  const zooRepo = {
-    ...createZooRepository({ capabilities }),
+  const repositories = {
+    zooRepo: createZooRepository({ capabilities }),
     ...deps.overrideRepositories
   }
-  const zooApplicationService = {
-    ...createZooApplicationService({ repositories: { zooRepo } }),
+  const applicationServices = {
+    zooApplicationService: createZooApplicationService({ repositories }),
     ...deps.overrideApplicationServices
   }
-  const controllers = createZooAnimalEventsController({ applicationServices: { zooApplicationService } })
+  const controllers = createZooAnimalEventsController({ applicationServices })
 
-  deps.eventBus.on('animal.animal.created', e => controllers.saveEvent(e).then(() => {}))
+  capabilities.eventBus.on('animal.animal.created', e => controllers.saveEvent(e).then(() => {}))
 }

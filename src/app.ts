@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import express, { json } from 'express'
-import { loadAnimalsModule } from './modules/animals/load'
+import { loadAnimalsModule } from './modules/animal/load'
 import { loadZooModule } from './modules/zoo/load'
 import { dbClient } from './shared/capabilities/dbClient'
 import { MemoryEventBus } from './shared/capabilities/eventBus'
@@ -23,8 +23,7 @@ loadAnimalsModule({
 
 loadZooModule({
   app,
-  capabilities,
-  eventBus
+  capabilities
 })
 
 app.use('*', (req, res) => {

@@ -1,4 +1,4 @@
-import { AnimalIntegrationEvents } from '../../modules/animals/integration'
+import { AnimalIntegrationEvents } from '../../modules/animal/integration'
 
 type EventNames = AnimalIntegrationEvents['eventName']
 
@@ -10,10 +10,10 @@ export type NarrowEventByName<
 export interface EventBus {
   on:<A extends EventNames>(
     eventName: A,
-    listener: (eventData: NarrowEventByName<AnimalIntegrationEvents, A>['eventData']) => Promise<void>
+    listener: (eventData: NarrowEventByName<AnimalIntegrationEvents, A>) => Promise<void>
   ) => void
   emit:<A extends EventNames>(
-    eventName: EventNames, eventData: NarrowEventByName<AnimalIntegrationEvents, A>['eventData']
+    _: NarrowEventByName<AnimalIntegrationEvents, A>
   ) => Promise<void>
 }
 
@@ -22,11 +22,9 @@ export class MemoryEventBus implements EventBus {
     this.listeners = listeners
   }
 
-  // @ts-ignore
   on<A extends EventNames>(
     eventName: A,
-    listener: (eventData: NarrowEventByName<AnimalIntegrationEvents, A>['eventData']
-    ) => Promise<void>
+    listener: (_: NarrowEventByName<AnimalIntegrationEvents, A>) => Promise<void>
   ) {
     this.listeners = {
       ...this.listeners,
@@ -34,10 +32,7 @@ export class MemoryEventBus implements EventBus {
     }
   }
 
-  async emit<A extends EventNames>(
-    eventName: A,
-    eventData: NarrowEventByName<AnimalIntegrationEvents, A>['eventData']
-  ) {
-    await Promise.all((this.listeners[eventName] || []).map((listener: any) => listener(eventData)))
+  async emit<A extends EventNames>(event: NarrowEventByName<AnimalIntegrationEvents, A>) {
+    await Promise.all((this.listeners[event.eventName] || []).map((listener: any) => listener(event.eventData)))
   }
 }

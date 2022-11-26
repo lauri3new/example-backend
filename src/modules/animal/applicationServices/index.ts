@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
 import { Left, Right } from 'light-fp/dist/Either'
-import { EventBus } from '../../../shared/capabilities/eventBus'
+import { EventBus, NarrowEventByName } from '../../../shared/capabilities/eventBus'
 import { fromNullable } from '../../../shared/lib/fromNullable'
 import { AnimalCreated } from '../domain/animal'
 import { checkAnimalType } from '../helpers'
 import { EmailService } from '../infrastructureServices/emailService'
+import { AnimalIntegrationEvents } from '../integration'
 import { AnimalRepository } from '../repositories/animal'
 import { TaskRepository } from '../repositories/task'
 
@@ -58,17 +59,21 @@ export const createAnimalApplicationService = ({
         ]
       }, trx)
       // integration events
-      const runIntegrationTasks = await taskRepo.createAndProcess({
-        eventType: 'animal.animal.created',
-        eventData: {
-          id,
-          name,
-          type
-        },
-        tasks: [
-          [{ type: 'emit_event' }, (event: any) => eventBus.emit('animal.animal.created', event)] as const
-        ]
-      }, trx)
+      const runIntegrationTasks = await taskRepo
+        .createAndProcess<NarrowEventByName<AnimalIntegrationEvents, 'animal.animal.created'>>({
+          eventType: 'animal.animal.created',
+          eventData: {
+            eventName: 'animal.animal.created',
+            eventData: {
+              id,
+              name,
+              type: x.value
+            }
+          },
+          tasks: [
+            [{ type: 'emit_event' }, event => eventBus.emit(event)] as const
+          ]
+        }, trx)
       await trx.commit()
       runTasks()
       runIntegrationTasks()

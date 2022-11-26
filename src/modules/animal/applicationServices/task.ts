@@ -34,7 +34,10 @@ export const createTaskApplicationService = ({
               break
             }
             case 'emit_event': {
-              await eventBus.emit(task.eventType, task.data)
+              await eventBus.emit({
+                eventName: task.eventType,
+                eventData: task.data
+              })
               await taskRepo.markProcessed(task.id)
               break
             }
