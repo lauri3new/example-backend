@@ -1,7 +1,9 @@
+import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
 import { Left, Right } from 'light-fp/dist/Either'
 import { EventBus } from '../../../shared/capabilities/eventBus'
 import { fromNullable } from '../../../shared/lib/fromNullable'
+import { AnimalCreated } from '../domain/animal'
 import { checkAnimalType } from '../helpers'
 import { EmailService } from '../infrastructureServices/emailService'
 import { AnimalRepository } from '../repositories/animal'
@@ -30,9 +32,9 @@ export const createAnimalApplicationService = ({
     get: (id: string) => fromNullable(animalRepo.get(id))
   },
   commands: {
-    create: async (type: string, name?: string) => {
+    create: async (type: string, newName?: string) => {
       const generateName = () => ['Coco', 'Froggy', 'Jumper', 'Sleepy'][Math.round(Math.random() * 10) % 4]
-      const id = `animal_${Math.random()}${new Date().toISOString()}`
+      const id = `animal_${randomUUID()}`
       const x = checkAnimalType(type).match(
         a => ({ type: 'left' as const, value: a }),
         b => ({ type: 'right' as const, value: b })
@@ -41,20 +43,35 @@ export const createAnimalApplicationService = ({
         return Left(x.value)
       }
       const trx = await dbClient.transaction()
-      const animal = await animalRepo.put({ id, name: name || generateName(), type: x.value })
-      const runTasks = await taskRepo.createAndProcess({
+      const name = newName || generateName()
+      const animal = await animalRepo.put({ id, name, type: x.value })
+      // internal events
+      const runTasks = await taskRepo.createAndProcess<AnimalCreated>({
         eventType: 'animal.created',
+        eventData: {
+          id,
+          name,
+          type: x.value
+        },
+        tasks: [
+          [{ type: 'send_email' }, event => emailService.send(event).then(_ => {})] as const
+        ]
+      }, trx)
+      // integration events
+      const runIntegrationTasks = await taskRepo.createAndProcess({
+        eventType: 'animal.animal.created',
         eventData: {
           id,
           name,
           type
         },
         tasks: [
-          [{ type: 'send_email' }, emailService.send] as const,
-          [{ type: 'emit_event' }, (event: any) => eventBus.emit('animal.created', event)] as const
+          [{ type: 'emit_event' }, (event: any) => eventBus.emit('animal.animal.created', event)] as const
         ]
       }, trx)
+      await trx.commit()
       runTasks()
+      runIntegrationTasks()
       return Right(animal)
     }
   }

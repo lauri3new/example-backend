@@ -29,7 +29,7 @@ export const createTaskApplicationService = ({
         try {
           switch (task.type) {
             case 'send_email': {
-              await emailService.send()
+              await emailService.send(task.data)
               await taskRepo.markProcessed(task.id)
               break
             }

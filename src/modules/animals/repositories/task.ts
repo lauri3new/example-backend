@@ -8,10 +8,10 @@ type TaskRepositoryDependencies = {
   }
 }
 
-type CreateAndProcessProps = {
+type CreateAndProcessProps<A> = {
   eventType: string
-  eventData: any
-  tasks: (readonly [{ type: string }, ((_:any) => Promise<any>)])[]
+  eventData: A
+  tasks: (readonly [{ type: string }, ((_:A) => Promise<void>)])[]
 }
 
 export const createTaskRepository = ({ capabilities: { dbClient } }: TaskRepositoryDependencies) => {
@@ -38,7 +38,7 @@ export const createTaskRepository = ({ capabilities: { dbClient } }: TaskReposit
       .innerJoin('app_event', 'app_task.event_id', 'app_event.id')
       .skipLocked()
       .limit(10),
-    createAndProcess: async (props: CreateAndProcessProps, trx: Transaction) => {
+    createAndProcess: async <A>(props: CreateAndProcessProps<A>, trx: Transaction) => {
       const eventId = `event_${randomUUID()}`
       await trx('animals.app_event').insert({
         id: eventId,
@@ -59,7 +59,6 @@ export const createTaskRepository = ({ capabilities: { dbClient } }: TaskReposit
         })
         return [taskId, f] as const
       }))
-      await trx.commit()
       return () => Promise.all(taskIdsTasks.map(async ([id, f]) => {
         await dbClient('animals.app_task')
           .select('id')

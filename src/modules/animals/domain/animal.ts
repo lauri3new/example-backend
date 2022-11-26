@@ -6,3 +6,9 @@ export class Animal {
     type: AnimalType
     updatedAt: Date}) {}
 }
+
+export type AnimalCreated = {
+  id: string
+  name: string
+  type: AnimalType
+}

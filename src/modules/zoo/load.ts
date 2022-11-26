@@ -28,5 +28,5 @@ export const loadZooModule = (
   }
   const controllers = createZooAnimalEventsController({ applicationServices: { zooApplicationService } })
 
-  deps.eventBus.on('animal.animal_created', e => controllers.saveEvent(e).then(() => {}))
+  deps.eventBus.on('animal.animal.created', e => controllers.saveEvent(e).then(() => {}))
 }

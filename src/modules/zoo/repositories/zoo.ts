@@ -6,12 +6,20 @@ type ZooRepositoryDependencies = {
   }
 }
 
-type CreateZooProps = { id: string }
+type CreateZooProps = {
+  id: string
+  name: string
+  type: string
+}
 
 export const createZooRepository = ({ capabilities: { dbClient } }: ZooRepositoryDependencies) => ({
-  getAllAnimals: () => dbClient.select('*').from('zoo'),
-  updateRegister: (props: CreateZooProps) => dbClient
-    .update(props.id, { ...props, updatedAt: new Date() })
+  getAllAnimals: () => dbClient.select('*').from('zoo.register'),
+  updateRegister: async (props: CreateZooProps) => dbClient('zoo.register')
+    .insert({
+      animalId: props.id,
+      animalName: props.name,
+      animalType: props.type
+    })
 })
 
 export type ZooRepository = ReturnType<typeof createZooRepository>

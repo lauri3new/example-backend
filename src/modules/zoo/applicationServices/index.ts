@@ -12,9 +12,6 @@ export const createZooApplicationService = ({ repositories: { zooRepo } }: Anima
     getAll: () => fromNullable(zooRepo.getAllAnimals())
   },
   commands: {
-    addFood: async () => {
-      // food repo
-    },
     updateZooRegister: async (animal: any) => zooRepo.updateRegister(animal)
   }
 })
