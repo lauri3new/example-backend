@@ -1,3 +1,4 @@
+import { ApplicationServices } from './applicationServices'
 import { AnimalType } from './domain/animal'
 
 export type AnimalIntegrationEvents = {
@@ -13,3 +14,9 @@ export type AnimalIntegrationEvents = {
     id: string
   }
 }
+
+export const exposeApiToModules = (animalApplicationServices: ApplicationServices) => ({
+  getAnimal: animalApplicationServices.applicationServices.animalApplicationService.queries.get
+})
+
+export type AnimalModuleAPI = ReturnType<typeof exposeApiToModules>

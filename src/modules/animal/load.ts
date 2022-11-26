@@ -5,6 +5,7 @@ import { createAnimalApplicationService, ApplicationServices } from './applicati
 import { createTaskApplicationService } from './applicationServices/task'
 import { createAnimalHttpController } from './controllers/http'
 import { emailService } from './infrastructureServices/emailService'
+import { exposeApiToModules } from './integration'
 import { HasRespositories } from './repositories'
 import { createAnimalRepository } from './repositories/animal'
 import { createTaskRepository } from './repositories/task'
@@ -40,7 +41,7 @@ export const loadAnimalsModule = (
       infrastructureServices: { emailService },
       repositories
     }),
-    ...deps.overrideApplicationServices
+    ...deps.overrideApplicationServices?.applicationServices
   }
   const controllers = createAnimalHttpController({ applicationServices })
   setInterval(() => {
@@ -48,5 +49,5 @@ export const loadAnimalsModule = (
   }, 1000)
   deps.app.get('/animals', controllers.httpGet)
   deps.app.put('/animals/:id', controllers.httpPut)
-  return applicationServices
+  return exposeApiToModules({ applicationServices })
 }

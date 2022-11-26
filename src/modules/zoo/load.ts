@@ -5,6 +5,7 @@ import { createZooApplicationService, ApplicationServices } from './applicationS
 import { createZooAnimalEventsController } from './controllers/event/animalEvents'
 import { createZooRepository } from './repositories/zoo'
 import { HasRespositories } from './repositories/index'
+import { AnimalModuleAPI } from '../animal/integration'
 
 export const loadZooModule = (
   deps: {
@@ -12,6 +13,7 @@ export const loadZooModule = (
     capabilities: {
       dbClient: Knex
       eventBus: EventBus
+      animalModuleAPI: AnimalModuleAPI
     },
     overrideRepositories?: Partial<HasRespositories>,
     overrideApplicationServices?: Partial<ApplicationServices>

@@ -16,14 +16,17 @@ const capabilities = {
 
 app.use(json())
 
-loadAnimalsModule({
+const animalModuleAPI = loadAnimalsModule({
   app,
   capabilities
 })
 
 loadZooModule({
   app,
-  capabilities
+  capabilities: {
+    ...capabilities,
+    animalModuleAPI
+  }
 })
 
 app.use('*', (req, res) => {
