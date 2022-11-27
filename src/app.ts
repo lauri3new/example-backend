@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import express, { json } from 'express'
 import { loadAnimalsModule } from './modules/animal/load'
-import { loadZooModule } from './modules/zoo/load'
+import { loadFoodModule } from './modules/food/load'
 import { dbClient } from './shared/capabilities/dbClient'
 import { MemoryEventBus } from './shared/capabilities/eventBus'
 
@@ -21,7 +21,7 @@ const animalModuleAPI = loadAnimalsModule({
   capabilities
 })
 
-loadZooModule({
+loadFoodModule({
   app,
   capabilities: {
     ...capabilities,

@@ -10,7 +10,7 @@ type AnimalRepositoryDependencies = {
 type PutAnimalProps = Pick<Animal['props'], 'name' | 'type'> & { id: string }
 
 export const createAnimalRepository = ({ capabilities: { dbClient } }: AnimalRepositoryDependencies) => ({
-  get: async (id: string) => dbClient.select('*').from('animals.animal').where('id', id).first(),
+  get: async (id: string) => dbClient.select<Animal>('*').from('animals.animal').where('id', id).first(),
   put: async (props: PutAnimalProps) => dbClient('animals.animal')
     .insert({ ...props, updatedAt: new Date() })
     .then(() => 1)

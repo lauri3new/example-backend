@@ -1,10 +1,12 @@
 export type AnimalType = 'dog' | 'cat' | 'elephant' | 'sloth'
 
 export class Animal {
-  constructor(readonly props:{ id: string
+  constructor(readonly props:{
+    id: string
     name: string
     type: AnimalType
-    updatedAt: Date}) {}
+    updatedAt: Date
+  }) {}
 }
 
 export type AnimalCreated = {

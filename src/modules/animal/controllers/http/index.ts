@@ -11,15 +11,15 @@ type AnimalHTTPControllerDependencies = {
 export const createAnimalHttpController = (
   { applicationServices: { animalApplicationService } }: AnimalHTTPControllerDependencies
 ) => ({
-  httpGet: (req: Request, res: Response) => validateGETAnimalRequest(req)
-    .flatMap(({ id }) => animalApplicationService.queries.get(id))
+  httpGet: async (req: Request, res: Response) => validateGETAnimalRequest(req)
     .match(
       error => {
         res.status(400).send({
           message: error || 'bad input'
         })
       },
-      animal => {
+      async ({ id }) => {
+        const animal = await animalApplicationService.queries.get(id)
         res.send(animal)
       }
     ),

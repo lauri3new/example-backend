@@ -47,7 +47,7 @@ export const loadAnimalsModule = (
   setInterval(() => {
     applicationServices.taskApplicationService.commands.runUnprocessedTasks()
   }, 1000)
-  deps.app.get('/animals', controllers.httpGet)
+  deps.app.get('/animals/:id', controllers.httpGet)
   deps.app.put('/animals/:id', controllers.httpPut)
   return exposeApiToModules({ applicationServices })
 }

@@ -2,7 +2,6 @@ import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
 import { Left, Right } from 'light-fp/dist/Either'
 import { EventBus, NarrowEventByName } from '../../../shared/capabilities/eventBus'
-import { fromNullable } from '../../../shared/lib/fromNullable'
 import { AnimalCreated } from '../domain/animal'
 import { checkAnimalType } from '../helpers'
 import { EmailService } from '../infrastructureServices/emailService'
@@ -30,7 +29,7 @@ export const createAnimalApplicationService = ({
   infrastructureServices: { emailService }
 }: AnimalApplicationServiceProps) => ({
   queries: {
-    get: (id: string) => fromNullable(animalRepo.get(id))
+    get: (id: string) => animalRepo.get(id)
   },
   commands: {
     create: async (type: string, newName?: string) => {

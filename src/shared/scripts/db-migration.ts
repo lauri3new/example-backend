@@ -29,8 +29,8 @@ const appModules: MigrationParams[] = [{
   directory: path.join(__dirname, '../../modules/animals/migrations'),
   schemaName: 'animals'
 }, {
-  directory: path.join(__dirname, '../../modules/zoo/migrations'),
-  schemaName: 'zoo'
+  directory: path.join(__dirname, '../../modules/food/migrations'),
+  schemaName: 'food'
 }]
 
 const latestHandler = async () => {
