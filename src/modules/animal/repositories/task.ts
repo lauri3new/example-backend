@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
 import { Transaction } from 'objection'
+import { AnimalIntegrationEvents } from '../integration'
 
 type TaskRepositoryDependencies = {
   capabilities: {
@@ -8,28 +9,37 @@ type TaskRepositoryDependencies = {
   }
 }
 
-type CreateAndProcessProps<A> = {
-  eventType: string
-  eventData: A
-  tasks: (readonly [{ type: string }, ((_:A) => Promise<void>)])[]
-}
-
 export const createTaskRepository = ({ capabilities: { dbClient } }: TaskRepositoryDependencies) => {
-  const markAttempted = async (id: string) => dbClient('animals.app_task')
-    .update({
-      attemptCount: dbClient.raw('?? + ?', ['attempt_count', 1]),
-      lastAttemptAt: new Date()
-    })
-    .where('id', id)
-  const markProcessed = async (id: string) => dbClient('animals.app_task')
-    .update({
-      processedAt: new Date()
-    })
-    .where('id', id)
+  const process = async (taskId: string, f: any) => {
+    const trx = await dbClient.transaction()
+    const event = await trx('animals.app_task')
+      .select(['app_event.*', 'app_event.type as eventType'])
+      .select('id')
+      .where('id', taskId)
+      .innerJoin('app_event', 'app_task.event_id', 'app_event.id')
+      .andWhere('processedAt', null)
+      .forUpdate()
+    try {
+      await f(event)
+    } catch (e) {
+      await trx('animals.app_task')
+        .update({
+          attemptCount: dbClient.raw('?? + ?', ['attempt_count', 1]),
+          lastAttemptAt: new Date()
+        })
+        .where('id', taskId)
+      await trx.commit()
+      return
+    }
+    await trx('animals.app_task')
+      .update({
+        processedAt: new Date()
+      })
+      .where('id', taskId)
+    await trx.commit()
+  }
 
   return {
-    markAttempted,
-    markProcessed,
     selectUnprocessed: async (trx: Knex) => trx('app_task')
       .withSchema('animals')
       .select(['app_task.*', 'app_event.data', 'app_event.type as eventType'])
@@ -38,20 +48,21 @@ export const createTaskRepository = ({ capabilities: { dbClient } }: TaskReposit
       .innerJoin('app_event', 'app_task.event_id', 'app_event.id')
       .skipLocked()
       .limit(10),
-    createAndProcess: async <A>(props: CreateAndProcessProps<A>, trx: Transaction) => {
-      const eventId = `event_${randomUUID()}`
+    create: async <A extends AnimalIntegrationEvents>(
+      event: A, tasks: (readonly [{ type: string }, () => {}])[], trx: Transaction
+    ) => {
       await trx('animals.app_event').insert({
-        id: eventId,
-        type: props.eventType,
-        data: props.eventData,
-        createdAt: new Date()
+        id: event.id,
+        type: event.kind,
+        data: event.data,
+        createdAt: event.createdAt
       })
-      const taskIdsTasks = await Promise.all(props.tasks.map(async ([{ type }, f]) => {
+      const taskIds = await Promise.all(tasks.map(async ([{ type }, f]) => {
         const taskId = `task_${randomUUID()}`
         await trx('animals.app_task').insert({
           id: taskId,
           type,
-          eventId,
+          eventId: event.id,
           attemptCount: 0,
           lastAttemptAt: null,
           createdAt: new Date(),
@@ -59,30 +70,9 @@ export const createTaskRepository = ({ capabilities: { dbClient } }: TaskReposit
         })
         return [taskId, f] as const
       }))
-      return () => Promise.all(taskIdsTasks.map(async ([id, f]) => {
-        await dbClient('animals.app_task')
-          .select('id')
-          .where('id', id)
-          .andWhere('processedAt', null)
-          .forUpdate()
-        try {
-          await f(props.eventData)
-        } catch (e) {
-          await dbClient('animals.app_task')
-            .update({
-              attemptCount: dbClient.raw('?? + ?', ['attempt_count', 1]),
-              lastAttemptAt: new Date()
-            })
-            .where('id', id)
-          return
-        }
-        await dbClient('animals.app_task')
-          .update({
-            processedAt: new Date()
-          })
-          .where('id', id)
-      }))
-    }
+      return taskIds.map(([id, f]) => () => process(id, f))
+    },
+    process
   }
 }
 

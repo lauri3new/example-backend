@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { AnimalApplicationService } from '../../applicationServices'
+import { AnimalApplicationService } from '../../applicationServices/animal'
 import { validateGETAnimalRequest, validatePUTAnimalRequest } from './validation'
 
 type AnimalHTTPControllerDependencies = {

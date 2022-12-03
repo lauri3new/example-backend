@@ -12,7 +12,7 @@ export const createFoodAnimalEventsController = (
   { applicationServices: { foodApplicationService } }: FoodHTTPControllerDependencies
 ) => ({
   saveEvent: (event: NarrowEventByName<AnimalIntegrationEvents, 'animal.animal.created'>) => foodApplicationService
-    .commands.updateFoodRegister(event.eventData)
+    .commands.updateFoodRegister(event.data)
 })
 
 export type FoodAnimalEventsController = ReturnType<typeof createFoodAnimalEventsController>

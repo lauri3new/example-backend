@@ -1,11 +1,11 @@
 import { AnimalIntegrationEvents } from '../../modules/animal/integration'
 
-type EventNames = AnimalIntegrationEvents['eventName']
+type EventNames = AnimalIntegrationEvents['kind']
 
 export type NarrowEventByName<
   Union extends AnimalIntegrationEvents,
-  Branch extends Union['eventName'],
-  > = Union extends Record<'eventName', Branch> ? Union : never;
+  Branch extends Union['kind'],
+  > = Union extends Record<'kind', Branch> ? Union : never;
 
 export interface EventBus {
   on:<A extends EventNames>(
@@ -23,16 +23,16 @@ export class MemoryEventBus implements EventBus {
   }
 
   on<A extends EventNames>(
-    eventName: A,
+    kind: A,
     listener: (_: NarrowEventByName<AnimalIntegrationEvents, A>) => Promise<void>
   ) {
     this.listeners = {
       ...this.listeners,
-      [eventName]: this.listeners[eventName] ? [...this.listeners[eventName], listener] : [listener]
+      [kind]: this.listeners[kind] ? [...this.listeners[kind], listener] : [listener]
     }
   }
 
   async emit<A extends EventNames>(event: NarrowEventByName<AnimalIntegrationEvents, A>) {
-    await Promise.all((this.listeners[event.eventName] || []).map((listener: any) => listener(event.eventData)))
+    await Promise.all((this.listeners[event.kind] || []).map((listener: any) => listener(event.kind)))
   }
 }

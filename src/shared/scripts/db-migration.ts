@@ -26,19 +26,23 @@ const rollbackModuleMigration = async (knex: Knex, migrationParams: MigrationPar
 }
 
 const appModules: MigrationParams[] = [{
-  directory: path.join(__dirname, '../../modules/animals/migrations'),
+  directory: path.join(__dirname, '../../modules/animal/migrations'),
   schemaName: 'animals'
 }, {
   directory: path.join(__dirname, '../../modules/food/migrations'),
   schemaName: 'food'
 }]
 
-const latestHandler = async () => {
+export const latestHandlerNoExit = async () => {
+  for (const appModule of appModules) {
+    const res = await runModuleMigrationLatest(dbClient, appModule)
+    logger.info({ result: res })
+  }
+}
+
+export const latestHandler = async () => {
   try {
-    for (const appModule of appModules) {
-      const res = await runModuleMigrationLatest(dbClient, appModule)
-      logger.info({ result: res })
-    }
+    await latestHandlerNoExit()
   } catch (err: any) {
     logger.error({ err })
     if (err.name !== MIGRATION_LOCKED) {

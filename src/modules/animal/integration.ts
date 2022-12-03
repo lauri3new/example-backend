@@ -1,18 +1,22 @@
-import { ApplicationServices } from './applicationServices'
+import { ApplicationServices } from './applicationServices/animal'
 import { AnimalType } from './domain/animal'
 
 export type AnimalIntegrationEvents = {
-  eventName: 'animal.animal.created'
-  eventData: {
+  id: string
+  kind: 'animal.animal.created'
+  data: {
     id: string
     name: string
     type: AnimalType
   }
+  createdAt: Date
 } | {
-  eventName: 'animal.animal.deleted'
-  eventData: {
+  id: string
+  kind: 'animal.animal.deleted'
+  data: {
     id: string
   }
+  createdAt: Date
 }
 
 export const exposeApiToModules = (animalApplicationServices: ApplicationServices) => ({

@@ -1,9 +1,9 @@
 import { Express } from 'express'
 import { Knex } from 'knex'
 import { EventBus } from '../../shared/capabilities/eventBus'
-import { createAnimalApplicationService, ApplicationServices } from './applicationServices'
-import { createTaskApplicationService } from './applicationServices/task'
+import { createApplicationServices, ApplicationServices } from './applicationServices/index'
 import { createAnimalHttpController } from './controllers/http'
+import { MemoryEventTaskThing } from './eventHandler'
 import { emailService } from './infrastructureServices/emailService'
 import { exposeApiToModules } from './integration'
 import { HasRespositories } from './repositories'
@@ -28,21 +28,24 @@ export const loadAnimalsModule = (
     taskRepo: createTaskRepository({ capabilities }),
     ...deps.overrideRepositories
   }
+  const eventTaskThing = new MemoryEventTaskThing({} as any, repositories.taskRepo)
   const infrastructureServices = {
     emailService,
+    eventTaskThing,
     ...deps.overrideInfrastructureServices
   }
   const applicationServices = {
-    animalApplicationService: createAnimalApplicationService({
-      repositories, capabilities, infrastructureServices
-    }),
-    taskApplicationService: createTaskApplicationService({
+    ...createApplicationServices({
       capabilities,
-      infrastructureServices: { emailService },
-      repositories
+      repositories,
+      infrastructureServices
     }),
-    ...deps.overrideApplicationServices?.applicationServices
+    ...deps.overrideApplicationServices
   }
+  eventTaskThing.on('animal.animal.created', [
+    applicationServices.eventListeners.animalCreatedSendEmailListener.listenerName,
+    applicationServices.eventListeners.animalCreatedSendEmailListener.listener
+  ])
   const controllers = createAnimalHttpController({ applicationServices })
   setInterval(() => {
     applicationServices.taskApplicationService.commands.runUnprocessedTasks()
