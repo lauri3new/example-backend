@@ -17,3 +17,6 @@ jobs:
         compose-file: |
           docker-compose.yml
           docker-compose.test.yml
+        compose-flags: |
+          --abort-on-container-exit
+          --exit-code-from app
