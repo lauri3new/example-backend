@@ -48,6 +48,7 @@ export const createFoodApplicationService = ({
         sloth: { food: 'carrots', value: 5 }
       }
       const { food, value } = foodMap[animal.type]
+
       return foodRepo.updateRegister({
         id: animal.id,
         food,

@@ -1,15 +1,19 @@
-import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
-import { Left, Right } from 'light-fp/dist/Either'
-import { EventBus, NarrowEventByName } from '../../../shared/capabilities/eventBus'
-import { AnimalCreated } from '../domain/animal'
-import { checkAnimalType } from '../helpers'
+import { EventBus } from '../../../shared/capabilities/eventBus'
+import { MemoryEventTaskOutbox } from '../eventTaskOutbox'
 import { EmailService } from '../infrastructureServices/emailService'
-import { AnimalIntegrationEvents } from '../integration'
 import { AnimalRepository } from '../repositories/animal'
 import { TaskRepository } from '../repositories/task'
+import { createAnimalApplicationService } from './animal'
+import {
+  createAnimalCreatedEventSendEmail
+} from './eventListeners/animalCreated/animalCreatedEventSendEmail'
+import {
+  createAnimalCreatedEventSendEventBus
+} from './eventListeners/animalCreated/animalCreatedEventSendEventBus'
+import { createTaskApplicationService } from './task/task'
 
-export type AnimalApplicationServiceProps = {
+type ApplicationServicesProps = {
   capabilities: {
     dbClient: Knex
     eventBus: EventBus
@@ -20,71 +24,17 @@ export type AnimalApplicationServiceProps = {
   }
   infrastructureServices: {
     emailService: EmailService
+    eventTaskOutbox: MemoryEventTaskOutbox
   }
 }
 
-export const createAnimalApplicationService = ({
-  repositories: { animalRepo, taskRepo },
-  capabilities: { dbClient, eventBus },
-  infrastructureServices: { emailService }
-}: AnimalApplicationServiceProps) => ({
-  queries: {
-    get: (id: string) => animalRepo.get(id)
-  },
-  commands: {
-    create: async (type: string, newName?: string) => {
-      const generateName = () => ['Coco', 'Froggy', 'Jumper', 'Sleepy'][Math.round(Math.random() * 10) % 4]
-      const id = `animal_${randomUUID()}`
-      const x = checkAnimalType(type).match(
-        a => ({ type: 'left' as const, value: a }),
-        b => ({ type: 'right' as const, value: b })
-      )
-      if (x.type === 'left') {
-        return Left(x.value)
-      }
-      const trx = await dbClient.transaction()
-      const name = newName || generateName()
-      const animal = await animalRepo.put({ id, name, type: x.value })
-      // internal events
-      const runTasks = await taskRepo.createAndProcess<AnimalCreated>({
-        eventType: 'animal.created',
-        eventData: {
-          id,
-          name,
-          type: x.value
-        },
-        tasks: [
-          [{ type: 'send_email' }, event => emailService.send(event).then(_ => {})] as const
-        ]
-      }, trx)
-      // integration events
-      const runIntegrationTasks = await taskRepo
-        .createAndProcess<NarrowEventByName<AnimalIntegrationEvents, 'animal.animal.created'>>({
-          eventType: 'animal.animal.created',
-          eventData: {
-            eventName: 'animal.animal.created',
-            eventData: {
-              id,
-              name,
-              type: x.value
-            }
-          },
-          tasks: [
-            [{ type: 'emit_event' }, event => eventBus.emit(event)] as const
-          ]
-        }, trx)
-      await trx.commit()
-      runTasks()
-      runIntegrationTasks()
-      return Right(animal)
-    }
+export const createApplicationServices = (deps: ApplicationServicesProps) => ({
+  animalApplicationService: createAnimalApplicationService(deps),
+  taskApplicationService: createTaskApplicationService(deps),
+  eventListeners: {
+    animalCreatedSendEmail: createAnimalCreatedEventSendEmail(deps),
+    animalCreatedSendEventBus: createAnimalCreatedEventSendEventBus(deps)
   }
 })
 
-export type AnimalApplicationService = ReturnType<typeof createAnimalApplicationService>
-
-export type ApplicationServices = {
-  applicationServices: {
-    animalApplicationService: AnimalApplicationService
-  }
-}
+export type ApplicationServices = ReturnType<typeof createApplicationServices>

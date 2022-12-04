@@ -1,9 +1,9 @@
 import { Express } from 'express'
 import { Knex } from 'knex'
 import { EventBus } from '../../shared/capabilities/eventBus'
-import { createAnimalApplicationService, ApplicationServices } from './applicationServices'
-import { createTaskApplicationService } from './applicationServices/task'
+import { createApplicationServices, ApplicationServices } from './applicationServices/index'
 import { createAnimalHttpController } from './controllers/http'
+import { MemoryEventTaskOutbox } from './eventTaskOutbox'
 import { emailService } from './infrastructureServices/emailService'
 import { exposeApiToModules } from './integration'
 import { HasRespositories } from './repositories'
@@ -17,36 +17,51 @@ export const loadAnimalsModule = (
       dbClient: Knex
       eventBus: EventBus
     },
+    config: {
+      startWorker: boolean
+    }
     overrideRepositories?: Partial<HasRespositories>,
     overrideApplicationServices?: Partial<ApplicationServices>,
     overrideInfrastructureServices?: Partial<any>
   }
 ) => {
-  const { capabilities } = deps
+  const { capabilities, config } = deps
   const repositories = {
     animalRepo: createAnimalRepository({ capabilities }),
     taskRepo: createTaskRepository({ capabilities }),
     ...deps.overrideRepositories
   }
+  const eventTaskOutbox = new MemoryEventTaskOutbox({} as any, repositories.taskRepo)
   const infrastructureServices = {
     emailService,
+    eventTaskOutbox,
     ...deps.overrideInfrastructureServices
   }
   const applicationServices = {
-    animalApplicationService: createAnimalApplicationService({
-      repositories, capabilities, infrastructureServices
-    }),
-    taskApplicationService: createTaskApplicationService({
+    ...createApplicationServices({
       capabilities,
-      infrastructureServices: { emailService },
-      repositories
+      repositories,
+      infrastructureServices
     }),
-    ...deps.overrideApplicationServices?.applicationServices
+    ...deps.overrideApplicationServices
   }
+
   const controllers = createAnimalHttpController({ applicationServices })
-  setInterval(() => {
-    applicationServices.taskApplicationService.commands.runUnprocessedTasks()
-  }, 1000)
+  if (config.startWorker) {
+    setInterval(() => {
+      applicationServices.taskApplicationService.commands.runUnprocessedTasks()
+    }, 1000)
+  }
+
+  eventTaskOutbox.on('animal.animal.created', [
+    applicationServices.eventListeners.animalCreatedSendEmail.listenerName,
+    applicationServices.eventListeners.animalCreatedSendEmail.listener
+  ])
+  eventTaskOutbox.on('animal.animal.created', [
+    applicationServices.eventListeners.animalCreatedSendEventBus.listenerName,
+    applicationServices.eventListeners.animalCreatedSendEventBus.listener
+  ])
+
   deps.app.get('/animals/:id', controllers.httpGet)
   deps.app.put('/animals/:id', controllers.httpPut)
   return exposeApiToModules({ applicationServices })

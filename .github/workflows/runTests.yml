@@ -1,0 +1,22 @@
+name: tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker Compose Action
+      uses: isbang/compose-action@v1.4.1
+      with:
+        compose-file: |
+          docker-compose.yml
+          docker-compose.test.yml
+        up-flags: |
+          --abort-on-container-exit
+          --exit-code-from app

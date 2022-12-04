@@ -1,3 +1,5 @@
+import { createIntegrationEvent } from '../../../shared/integration/integrationEvent'
+
 export type AnimalType = 'dog' | 'cat' | 'elephant' | 'sloth'
 
 export class Animal {
@@ -9,8 +11,13 @@ export class Animal {
   }) {}
 }
 
-export type AnimalCreated = {
-  id: string
+type AnimalCreatedData = {
+    id: string
   name: string
   type: AnimalType
 }
+
+export const createAnimalCreatedEvent = (data: AnimalCreatedData) => createIntegrationEvent({
+  data,
+  kind: 'animal.animal.created'
+})
