@@ -3,7 +3,7 @@ import { Knex } from 'knex'
 import { Left, Right } from 'light-fp/dist/Either'
 import { EventBus } from '../../../../shared/capabilities/eventBus'
 import { createAnimalCreatedEvent } from '../../domain/animal'
-import { MemoryEventTaskThing } from '../../eventHandler'
+import { MemoryEventTaskOutbox } from '../../eventTaskOutbox'
 import { checkAnimalType } from '../../helpers'
 import { EmailService } from '../../infrastructureServices/emailService'
 import { AnimalRepository } from '../../repositories/animal'
@@ -20,14 +20,14 @@ export type AnimalApplicationServiceProps = {
   }
   infrastructureServices: {
     emailService: EmailService
-    eventTaskThing: MemoryEventTaskThing
+    eventTaskOutbox: MemoryEventTaskOutbox
   }
 }
 
 export const createAnimalApplicationService = ({
   repositories: { animalRepo },
   capabilities: { dbClient },
-  infrastructureServices: { eventTaskThing }
+  infrastructureServices: { eventTaskOutbox }
 }: AnimalApplicationServiceProps) => ({
   queries: {
     get: (id: string) => animalRepo.get(id)
@@ -49,7 +49,7 @@ export const createAnimalApplicationService = ({
 
       const {
         commit
-      } = await eventTaskThing.startEmit(createAnimalCreatedEvent({
+      } = await eventTaskOutbox.startEmit(createAnimalCreatedEvent({
         id,
         name,
         type: x.value

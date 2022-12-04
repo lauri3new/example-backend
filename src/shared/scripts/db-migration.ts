@@ -71,7 +71,7 @@ const latestModuleHandler = async (moduleName: string) => {
   }
 }
 
-const rollbackHandler = async () => {
+export const rollbackHandler = async () => {
   try {
     for (const appModule of appModules) {
       const res = await rollbackModuleMigration(dbClient, appModule)

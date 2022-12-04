@@ -18,7 +18,10 @@ app.use(json())
 
 const animalModuleAPI = loadAnimalsModule({
   app,
-  capabilities
+  capabilities,
+  config: {
+    startWorker: false
+  }
 })
 
 loadFoodModule({
@@ -42,4 +45,6 @@ app.use('*', (req: any, res: any, next: any, error: any) => {
   })
 })
 
-app.listen(8080, () => console.log('app is listening on port 8080'))
+export {
+  app
+}

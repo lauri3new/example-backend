@@ -1,11 +1,16 @@
 import { Knex } from 'knex'
 import { EventBus } from '../../../shared/capabilities/eventBus'
-import { MemoryEventTaskThing } from '../eventHandler'
+import { MemoryEventTaskOutbox } from '../eventTaskOutbox'
 import { EmailService } from '../infrastructureServices/emailService'
 import { AnimalRepository } from '../repositories/animal'
 import { TaskRepository } from '../repositories/task'
 import { createAnimalApplicationService } from './animal'
-import { createAnimalCreatedEventSendEmailListener } from './eventListeners/animalCreated/sendEmail'
+import {
+  createAnimalCreatedEventSendEmail
+} from './eventListeners/animalCreated/animalCreatedEventSendEmail'
+import {
+  createAnimalCreatedEventSendEventBus
+} from './eventListeners/animalCreated/animalCreatedEventSendEventBus'
 import { createTaskApplicationService } from './task/task'
 
 type ApplicationServicesProps = {
@@ -19,7 +24,7 @@ type ApplicationServicesProps = {
   }
   infrastructureServices: {
     emailService: EmailService
-    eventTaskThing: MemoryEventTaskThing
+    eventTaskOutbox: MemoryEventTaskOutbox
   }
 }
 
@@ -27,7 +32,8 @@ export const createApplicationServices = (deps: ApplicationServicesProps) => ({
   animalApplicationService: createAnimalApplicationService(deps),
   taskApplicationService: createTaskApplicationService(deps),
   eventListeners: {
-    animalCreatedSendEmailListener: createAnimalCreatedEventSendEmailListener(deps)
+    animalCreatedSendEmail: createAnimalCreatedEventSendEmail(deps),
+    animalCreatedSendEventBus: createAnimalCreatedEventSendEventBus(deps)
   }
 })
 

@@ -3,7 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 import { Knex } from 'knex'
 import { EventBus } from '../../../../shared/capabilities/eventBus'
-import { EventTaskThing } from '../../eventHandler'
+import { EventTaskOutbox } from '../../eventTaskOutbox'
 import { TaskRepository } from '../../repositories/task'
 
 export type TaskApplicationServiceProps = {
@@ -15,20 +15,20 @@ export type TaskApplicationServiceProps = {
     taskRepo: TaskRepository
   }
   infrastructureServices: {
-    eventTaskThing: EventTaskThing
+    eventTaskOutbox: EventTaskOutbox
   }
 }
 
 export const createTaskApplicationService = ({
   repositories: { taskRepo }, capabilities: { dbClient },
-  infrastructureServices: { eventTaskThing }
+  infrastructureServices: { eventTaskOutbox }
 }: TaskApplicationServiceProps) => ({
   commands: {
     runUnprocessedTasks: async () => {
       const tasks = await taskRepo.selectUnprocessed(dbClient)
       for (const task of tasks) {
         try {
-          eventTaskThing.runTask(task.event.kind, task.task.kind, task.task.id)
+          eventTaskOutbox.runTask(task.event.kind, task.task.kind, task.task.id)
         } catch (e) {
           console.log('taskApplicationService:runUnprocessedTasks', e)
         }

@@ -33,6 +33,6 @@ export class MemoryEventBus implements EventBus {
   }
 
   async emit<A extends EventNames>(event: NarrowEventByName<AnimalIntegrationEvents, A>) {
-    await Promise.all((this.listeners[event.kind] || []).map((listener: any) => listener(event.kind)))
+    await Promise.all((this.listeners[event.kind] || []).map((listener: any) => listener(event)))
   }
 }

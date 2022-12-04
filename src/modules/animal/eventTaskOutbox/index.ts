@@ -9,7 +9,7 @@ export type NarrowEventByName<
   Branch extends Union['kind'],
   > = Union extends Record<'kind', Branch> ? Union : never;
 
-export interface EventTaskThing {
+export interface EventTaskOutbox {
   on:<A extends EventNames>(
     eventName: A,
     task: [string, (_: NarrowEventByName<AnimalIntegrationEvents, A>) => Promise<void>]
@@ -23,7 +23,7 @@ export interface EventTaskThing {
   runTask: (_: EventNames, __: string, ___: string) => Promise<void>
 }
 
-export class MemoryEventTaskThing implements EventTaskThing {
+export class MemoryEventTaskOutbox implements EventTaskOutbox {
   constructor(
     private listeners: Record<EventNames, Record<string, () => {}>> = {} as any,
     private readonly taskRepo: TaskRepository
@@ -44,11 +44,9 @@ export class MemoryEventTaskThing implements EventTaskThing {
     }
   }
 
-  //
-
   async startEmit<A extends EventNames>(event: NarrowEventByName<AnimalIntegrationEvents, A>, trx: Transaction) {
     const listeners = Object.entries(this.listeners[event.kind])
-      .map(a => ([{ type: a[0] }, a[1]]) as const)
+      .map(([kind, f]) => ([{ kind }, f]) as const)
     const tasks = await this.taskRepo.create(
       event,
       listeners,
@@ -59,7 +57,9 @@ export class MemoryEventTaskThing implements EventTaskThing {
       trx,
       commit: async () => {
         await trx.commit()
-        tasks.forEach(f => f())
+        tasks.forEach(f => {
+          f()
+        })
       }
     }
   }

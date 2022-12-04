@@ -1,20 +1,18 @@
-import { NarrowEventByName } from '../../../eventHandler'
+import { NarrowEventByName } from '../../../eventTaskOutbox'
 import { EmailService } from '../../../infrastructureServices/emailService'
 import { AnimalIntegrationEvents } from '../../../integration'
 
-type AnimalCreatedEventListener = {
+type AnimalCreatedEventSendEmailDeps = {
   infrastructureServices: {
     emailService: EmailService
   }
 }
 
-export const createAnimalCreatedEventSendEmailListener = (deps: AnimalCreatedEventListener) => ({
-  listenerName: 'animal.animal.created.send.email.listener' as const,
-  // run task
+export const createAnimalCreatedEventSendEmail = (deps: AnimalCreatedEventSendEmailDeps) => ({
+  listenerName: 'animal.animal.created.send.email' as const,
   listener: async (
     event: NarrowEventByName<AnimalIntegrationEvents, 'animal.animal.created'>
   ) => {
-    // taskRepo process.
     await deps.infrastructureServices.emailService.send(event)
   }
 })
