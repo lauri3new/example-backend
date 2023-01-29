@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 import { Knex } from 'knex'
-import { EventBus } from '../../../../shared/capabilities/eventBus'
+import { EventBus } from '../../../../shared/capabilities/eventBus/eventBus'
 import { EventTaskOutbox } from '../../eventTaskOutbox'
 import { TaskRepository } from '../../repositories/task'
 

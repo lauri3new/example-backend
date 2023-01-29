@@ -1,5 +1,5 @@
 import { Knex } from 'knex'
-import { EventBus } from '../../../shared/capabilities/eventBus'
+import { EventBus } from '../../../shared/capabilities/eventBus/eventBus'
 import { MemoryEventTaskOutbox } from '../eventTaskOutbox'
 import { EmailService } from '../infrastructureServices/emailService'
 import { AnimalRepository } from '../repositories/animal'

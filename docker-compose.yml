@@ -6,6 +6,7 @@ services:
       context: .
     depends_on:
       - postgres
+      - sqs
     env_file:
       - dev.env
     ports:
@@ -24,3 +25,17 @@ services:
       POSTGRES_USER: zoo
       POSTGRES_PASSWORD: zoo
       POSTGRES_DBNAME: zoo
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566"
+    environment:
+      - SERVICES=sqs
+      - PORT_WEB_UI=8080
+      - DEFAULT_REGION=us-east-1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "~/tmp/localstack:/var/lib/localstack."
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./localstack_bootstrap:/docker-entrypoint-initaws.d/

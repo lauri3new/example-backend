@@ -1,6 +1,6 @@
 import { Express } from 'express'
 import { Knex } from 'knex'
-import { EventBus } from '../../shared/capabilities/eventBus'
+import { EventBus } from '../../shared/capabilities/eventBus/eventBus'
 import { createFoodApplicationService, ApplicationServices } from './applicationServices'
 import { createFoodRepository } from './repositories/food'
 import { HasRespositories } from './repositories/index'

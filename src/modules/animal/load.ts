@@ -1,6 +1,6 @@
 import { Express } from 'express'
 import { Knex } from 'knex'
-import { EventBus } from '../../shared/capabilities/eventBus'
+import { EventBus } from '../../shared/capabilities/eventBus/eventBus'
 import { createApplicationServices, ApplicationServices } from './applicationServices/index'
 import { createAnimalHttpController } from './controllers/http'
 import { MemoryEventTaskOutbox } from './eventTaskOutbox'
@@ -61,7 +61,7 @@ export const loadAnimalsModule = (
     applicationServices.eventListeners.animalCreatedSendEventBus.listenerName,
     applicationServices.eventListeners.animalCreatedSendEventBus.listener
   ])
-
+  eventTaskOutbox.on('animal.animal.created', )
   deps.app.get('/animals/:id', controllers.httpGet)
   deps.app.put('/animals/:id', controllers.httpPut)
   return exposeApiToModules({ applicationServices })

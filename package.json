@@ -9,7 +9,7 @@
     "dev:start": "docker compose up",
     "dev:docker:start": "npm run migrate:latest && npx tsc -w & npx nodemon ./dist/app.js",
     "test:start": "docker compose -f docker-compose.yml -f docker-compose.test.yml up",
-    "test:docker:start": "npm i && npx jest --watch",
+    "test:docker:start": "npm i && npx jest --watch --detectOpenHandles",
     "migrate:latest": "node ./dist/shared/scripts/db-migration latest",
     "migrate:make": "node ./dist/shared/scripts/db-migration make-module"
   },
@@ -35,12 +35,15 @@
     "wait-for-expect": "^3.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.231.0",
     "express": "^4.17.3",
     "knex": "^2.3.0",
     "light-fp": "^0.1.8",
     "objection": "^3.0.1",
     "pg": "^8.8.0",
     "pino": "^8.7.0",
+    "sqs-consumer": "^6.0.0-alpha.2",
+    "sqs-producer": "^3.0.0-alpha.3",
     "yargs": "^17.6.2"
   }
 }

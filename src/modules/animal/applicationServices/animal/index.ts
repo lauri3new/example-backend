@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import { Knex } from 'knex'
 import { Left, Right } from 'light-fp/dist/Either'
-import { EventBus } from '../../../../shared/capabilities/eventBus'
+import { EventBus } from '../../../../shared/capabilities/eventBus/eventBus'
 import { createAnimalCreatedEvent } from '../../domain/animal'
 import { MemoryEventTaskOutbox } from '../../eventTaskOutbox'
 import { checkAnimalType } from '../../helpers'

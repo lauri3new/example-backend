@@ -1,4 +1,4 @@
-import { EventBus } from '../../../../../shared/capabilities/eventBus'
+import { EventBus } from '../../../../../shared/capabilities/eventBus/eventBus'
 import { NarrowEventByName } from '../../../eventTaskOutbox'
 import { AnimalIntegrationEvents } from '../../../integration'
 

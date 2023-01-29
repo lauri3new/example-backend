@@ -1,4 +1,4 @@
-import { NarrowEventByName } from '../../../../shared/capabilities/eventBus'
+import { NarrowEventByName } from '../../../../shared/capabilities/eventBus/eventBus'
 import { AnimalIntegrationEvents } from '../../../animal/integration'
 import { FoodApplicationService } from '../../applicationServices'
 

@@ -3,11 +3,11 @@ import express, { json } from 'express'
 import { loadAnimalsModule } from './modules/animal/load'
 import { loadFoodModule } from './modules/food/load'
 import { dbClient } from './shared/capabilities/dbClient'
-import { MemoryEventBus } from './shared/capabilities/eventBus'
+import { SQSEventBus } from './shared/capabilities/eventBus/sqsEventBus'
 
 const app = express()
 
-const eventBus = new MemoryEventBus({})
+const eventBus = new SQSEventBus({}, 'http://localstack:4566/000000000000/default')
 
 const capabilities = {
   dbClient,
@@ -46,5 +46,6 @@ app.use('*', (req: any, res: any, next: any, error: any) => {
 })
 
 export {
-  app
+  app,
+  eventBus
 }
